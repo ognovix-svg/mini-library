@@ -1,0 +1,38 @@
+{% extends 'base.html' %}
+
+{% block title %}Додати нову книгу - Міні-бібліотека{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card shadow-sm">
+            <div class="card-header bg-dark text-white">
+                <h4 class="mb-0">Додавання нової книги</h4>
+            </div>
+            <div class="card-body">
+                <form method="post">
+                    <!-- Захист від міжсайтової підробки запитів (обов'язковий у Django) -->
+                    {% csrf_token %}
+
+                    {% for field in form %}
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">{{ field.label }}</label>
+                        {{ field }}
+                        {% if field.errors %}
+                            <div class="text-danger small mt-1">
+                                {{ field.errors }}
+                            </div>
+                        {% endif %}
+                    </div>
+                    {% endfor %}
+
+                    <div class="d-flex justify-content-between mt-4">
+                        <a href="/books/" class="btn btn-outline-secondary">Скасувати</a>
+                        <button type="submit" class="btn btn-success px-4">Зберегти книгу</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

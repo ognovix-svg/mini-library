@@ -1,0 +1,79 @@
+{% extends 'base.html' %}
+
+{% block title %}Каталог книг - Міні-бібліотека{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2>Каталог книг</h2>
+    <a href="/books/new/" class="btn btn-primary">+ Додати книгу</a>
+</div>
+
+<div class="card shadow-sm">
+    <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+            <thead class="table-dark">
+                <tr>
+                    <th>Назва книги</th>
+                    <th>Автори</th>
+                    <th>Рік</th>
+                    <th>Наявність</th>
+                    <th>Дія</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for book in page_obj %}
+                <tr>
+                    <td class="fw-bold">{{ book.title }}</td>
+                    <td>
+                        {{ book.authors.all|join:", " }}
+                    </td>
+                    <td>{{ book.published_year }}</td>
+                    <td>
+                        {% if book.available_copies > 0 %}
+                            <span class="badge bg-success">{{ book.available_copies }} / {{ book.copies_total }}</span>
+                        {% else %}
+                            <span class="badge bg-danger">Немає в наявності (0 / {{ book.copies_total }})</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <a href="/books/{{ book.id }}/" class="btn btn-sm btn-outline-primary">Деталі</a>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="5" class="text-center py-4 text-muted">У бібліотеці поки немає книг.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Пагінація -->
+{% if page_obj.has_other_pages %}
+<nav class="mt-4">
+    <ul class="pagination justify-content-center">
+        {% if page_obj.has_previous %}
+            <li class="page-item">
+                <a class="page-link" href="?page={{ page_obj.previous_page_number }}">« Назад</a>
+            </li>
+        {% else %}
+            <li class="page-item disabled"><span class="page-link">« Назад</span></li>
+        {% endif %}
+
+        <li class="page-item active">
+            <span class="page-link">Сторінка {{ page_obj.number }} з {{ page_obj.paginator.num_pages }}</span>
+        </li>
+
+        {% if page_obj.has_next %}
+            <li class="page-item">
+                <a class="page-link" href="?page={{ page_obj.next_page_number }}">Вперед »</a>
+            </li>
+        {% else %}
+            <li class="page-item disabled"><span class="page-link">Вперед »</span></li>
+        {% endif %}
+    </ul>
+</nav>
+{% endif %}
+
+{% endblock %}

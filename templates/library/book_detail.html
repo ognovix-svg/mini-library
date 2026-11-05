@@ -1,0 +1,150 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ book.title }} - Міні-бібліотека{% endblock %}
+
+{% block content %}
+<div class="mb-3 d-flex justify-content-between">
+    <a href="/books/" class="btn btn-outline-secondary btn-sm">← Назад до каталогу</a>
+    <a href="/books/{{ book.id }}/edit/" class="btn btn-warning btn-sm">✏️ Редагувати книгу</a>
+</div>
+
+<!-- Картка з інформацією про книгу -->
+<div class="card shadow-sm mb-4">
+    <div class="card-body">
+        <h2 class="card-title fw-bold text-primary">{{ book.title }}</h2>
+        <h5 class="text-muted mb-3">
+            Автори: {{ book.authors.all|join:", "|default:"Не вказано" }}
+        </h5>
+
+        <div class="row mt-4">
+            <div class="col-md-3">
+                <span class="text-muted d-block">Рік видання</span>
+                <strong>{{ book.published_year }}</strong>
+            </div>
+            <div class="col-md-3">
+                <span class="text-muted d-block">ISBN</span>
+                <code>{{ book.isbn }}</code>
+            </div>
+            <div class="col-md-3">
+                <span class="text-muted d-block">Всього примірників</span>
+                <strong>{{ book.copies_total }} шт.</strong>
+            </div>
+            <div class="col-md-3">
+                <span class="text-muted d-block">Доступно для видачі</span>
+                {% if book.available_copies > 0 %}
+                    <span class="badge bg-success fs-6">{{ book.available_copies }} шт.</span>
+                {% else %}
+                    <span class="badge bg-danger fs-6">0 шт. (Всі видані)</span>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+<!-- Блок видачі книги -->
+<div class="card shadow-sm mb-4">
+    <div class="card-header bg-primary text-white">
+        <h5 class="mb-0">📖 Видати цю книгу читачеві</h5>
+    </div>
+    <div class="card-body">
+        {% if book.available_copies > 0 %}
+        <form method="post" action="/books/{{ book.id }}/loan/" class="row g-3 align-items-end">
+            {% csrf_token %}
+            <div class="col-md-5">
+                <label class="form-label fw-bold">Оберіть читача:</label>
+                <select name="reader_id" class="form-select" required>
+                    <option value="" disabled selected>-- Оберіть читача --</option>
+                    {% for reader in readers %}
+                        <option value="{{ reader.id }}">{{ reader.full_name }} ({{ reader.email }})</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-4">
+                <label class="form-label fw-bold">Повернути до (дедлайн):</label>
+                <input type="date" name="due_date" class="form-control" required>
+            </div>
+            <div class="col-md-3">
+                <button type="submit" class="btn btn-primary w-100">Видати книгу</button>
+            </div>
+        </form>
+        {% else %}
+        <div class="alert alert-danger mb-0">
+            <strong>Увага:</strong> Усі примірники цієї книги зараз видані на руки. Видача нових примірників неможлива.
+        </div>
+        {% endif %}
+    </div>
+</div>
+<!-- Блок: Хто зараз читає цю книгу -->
+<div class="card shadow-sm mb-4">
+    <div class="card-header bg-white">
+        <h5 class="mb-0">Активні видачі (на руках у читачів)</h5>
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+                            <table class="table table-hover mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>Читач</th>
+                        <th>Email</th>
+                        <th>Дата видачі</th>
+                        <th>Повернути до</th>
+                        <th>Дія</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for loan in active_loans %}
+                    <tr>
+                        <td class="fw-bold">{{ loan.reader.full_name }}</td>
+                        <td>{{ loan.reader.email }}</td>
+                        <td>{{ loan.issued_at }}</td>
+                        <td><span class="badge bg-warning text-dark">{{ loan.due_date }}</span></td>
+                        <td>
+                            <form method="post" action="/loans/{{ loan.id }}/return/">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-sm btn-outline-success">Повернути книгу</button>
+                            </form>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="5" class="text-center py-3 text-muted">Зараз ця книга нікому не видана.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Блок: Історія повернень -->
+<div class="card shadow-sm">
+    <div class="card-header bg-white">
+        <h5 class="mb-0">Історія повернень</h5>
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-sm mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>Читач</th>
+                        <th>Дата видачі</th>
+                        <th>Дата повернення</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for loan in loan_history %}
+                    <tr>
+                        <td>{{ loan.reader.full_name }}</td>
+                        <td>{{ loan.issued_at }}</td>
+                        <td><span class="text-success">Повернуто {{ loan.returned_at }}</span></td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="3" class="text-center py-3 text-muted">Історія повернень порожня.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}
