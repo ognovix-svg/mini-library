@@ -9,4 +9,5 @@ urlpatterns = [
     path('books/<int:pk>/edit/', views.book_edit, name='book_edit'),
     path('loans/<int:pk>/return/', views.loan_return, name='loan_return'),
     path('books/<int:pk>/loan/', views.loan_create, name='loan_create'),
+    path('stats/', views.library_stats, name='stats'),  # <-- НОВИЙ РЯДОК
 ]

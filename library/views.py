@@ -2,8 +2,10 @@ from django.shortcuts import  render, get_object_or_404, redirect
 from django.shortcuts import render
 from django.utils import timezone
 from django.core.paginator import Paginator
-from .models import Book, Loan, Reader
+from .models import Book, Loan, Reader, Author
 from .forms import BookForm
+from django.db.models import Count
+from .structures import benchmark_search
 
 
 def book_create(request):
@@ -75,6 +77,35 @@ def loan_create(request, pk):
             Loan.objects.create(book=book, due_date=due_date, reader_id=reader_id)
     return redirect('book_detail', pk=book.pk)
 
+
+def library_stats(request):
+    # 1. Топ-3 найактивніших читачів
+    top_readers = Reader.objects.annotate(
+        total_loans=Count('loans')
+    ).order_by('-total_loans')[:3]
+
+    # 2. Прострочені позики
+    today = timezone.now().date()
+    overdue_loans = Loan.objects.filter(
+        returned_at__isnull=True,
+        due_date__lt=today
+    ).select_related('book', 'reader')
+
+    # 3. Кількість книг за авторами
+    author_stats = Author.objects.annotate(
+        total_books=Count('books')
+    ).order_by('-total_books')
+
+    # 4. Бенчмарк швидкості на 1 000 000 елементів
+    benchmark_data = benchmark_search()
+
+    context = {
+        'top_readers': top_readers,
+        'overdue_loans': overdue_loans,
+        'author_stats': author_stats,
+        'benchmark_data': benchmark_data,
+    }
+    return render(request, 'library/stats.html', context)
 
 
 

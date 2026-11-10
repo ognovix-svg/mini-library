@@ -1,0 +1,119 @@
+{% extends 'base.html' %}
+
+{% block title %}Статистика бібліотеки{% endblock %}
+
+{% block content %}
+<h2 class="mb-4">📊 Аналітика та статистика бібліотеки</h2>
+
+<div class="row g-4 mb-4">
+    <!-- Топ-3 читачі -->
+    <div class="col-md-6">
+        <div class="card shadow-sm h-100">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0">🏆 Топ-3 найактивніших читачів</h5>
+            </div>
+            <div class="card-body p-0">
+                <ul class="list-group list-group-flush">
+                    {% for reader in top_readers %}
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        <div>
+                            <strong>{{ forloop.counter }}. {{ reader.full_name }}</strong>
+                            <small class="text-muted d-block">{{ reader.email }}</small>
+                        </div>
+                        <span class="badge bg-primary rounded-pill">{{ reader.total_loans }} книг</span>
+                    </li>
+                    {% empty %}
+                    <li class="list-group-item text-muted">Немає даних.</li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <!-- Кількість книг за авторами -->
+    <div class="col-md-6">
+        <div class="card shadow-sm h-100">
+            <div class="card-header bg-secondary text-white">
+                <h5 class="mb-0">✍️ Книг за авторами</h5>
+            </div>
+            <div class="card-body p-0">
+                <ul class="list-group list-group-flush">
+                    {% for author in author_stats %}
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        {{ author.first_name }} {{ author.last_name }}
+                        <span class="badge bg-secondary rounded-pill">{{ author.total_books }} книг</span>
+                    </li>
+                    {% empty %}
+                    <li class="list-group-item text-muted">Немає даних.</li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Боржники (прострочені книги) -->
+<div class="card shadow-sm mb-4">
+    <div class="card-header bg-danger text-white">
+        <h5 class="mb-0">⚠️ Прострочені видачі (Боржники)</h5>
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>Читач</th>
+                        <th>Книга</th>
+                        <th>Дата видачі</th>
+                        <th>Дедлайн</th>
+                        <th>Статус</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for loan in overdue_loans %}
+                    <tr>
+                        <td class="fw-bold">{{ loan.reader.full_name }} ({{ loan.reader.email }})</td>
+                        <td>{{ loan.book.title }}</td>
+                        <td>{{ loan.issued_at }}</td>
+                        <td class="text-danger fw-bold">{{ loan.due_date }}</td>
+                        <td><span class="badge bg-danger">Прострочено</span></td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="5" class="text-center py-3 text-success">
+                            🎉 Боржників немає! Усі книги повертаються вчасно.
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Бенчмарк алгоритмів -->
+<div class="card shadow-sm">
+    <div class="card-header bg-dark text-white">
+        <h5 class="mb-0">⚡ Бенчмарк швидкості (Computer Science на 1 000 000 елементів)</h5>
+    </div>
+    <div class="card-body">
+        <div class="row text-center">
+            <div class="col-md-4">
+                <h6 class="text-muted">Розмір масиву</h6>
+                <h3>1 000 000</h3>
+            </div>
+            <div class="col-md-4">
+                <h6 class="text-muted">Лінійний пошук O(N)</h6>
+                <h4 class="text-danger">{{ benchmark_data.linear_time_sec }} сек</h4>
+            </div>
+            <div class="col-md-4">
+                <h6 class="text-muted">Бінарний пошук O(log N)</h6>
+                <h4 class="text-success">{{ benchmark_data.binary_time_sec }} сек</h4>
+            </div>
+        </div>
+        <div class="text-center mt-3">
+            <span class="badge bg-success fs-6">Бінарний пошук швидший: {{ benchmark_data.speedup }}</span>
+        </div>
+    </div>
+</div>
+{% endblock %}
