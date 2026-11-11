@@ -106,6 +106,3 @@ def library_stats(request):
         'benchmark_data': benchmark_data,
     }
     return render(request, 'library/stats.html', context)
-
-
-
